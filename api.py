@@ -46,6 +46,7 @@ class Requester:
       for server in self.servers:
         data = requests.get(self.url + 'flights/{}?apikey={}'.format(server, os.getenv('IFKEY'))).json()['result']
         self.serverFlights[server] = data
+        self.serverFlights[server][0]['timeOfRequest'] = currentTime
         numberOfFlights += len(data)
         for i in range(len(data)):
           fid = data[i]['flightId']
@@ -89,7 +90,7 @@ class Requester:
               self.history[fid][0]['BeenInAir'] = 'Yes'
 
             # Now specific cases
-            
+
             if status == 'On the ground' and len(self.history[fid]) > 40:
               if self.history[fid][0]['BeenInAir'] == 'No':
                 self.history[fid][0]['Time'] = 'Delayed'
@@ -97,12 +98,12 @@ class Requester:
             if len(self.history[fid]) >= 2:
               if status == 'Taking off' and self.history[fid][-2]['Status'] == 'On the ground':
                 self.history[fid][0]['Timings'][1] = currentTime
-                self.history[fid][0]['Timings'][2] = 0 # for multi-leg flights 
+                self.history[fid][0]['Timings'][2] = 0 # for multi-leg flights
 
               if status == 'On the ground' and self.history[fid][-2]['Status'] == 'Landing':
-                self.history[fid][0]['Timings'][2] = currentTime 
+                self.history[fid][0]['Timings'][2] = currentTime
 
-            self.history[fid][0]['Timings'][3] = currentTime    
+            self.history[fid][0]['Timings'][3] = currentTime
             newData = {"Altitude" : alt, "Longitude" : lon, "Latitude" :lat, "Speed" : speed, "Status" : status}
             self.history[fid].append(newData)
             totalDataPoints += len(self.history[fid])
@@ -149,7 +150,7 @@ class Requester:
     # remove disconnected planes
     for plane in toRemove:
       del self.disconnected[plane]
-    # update previousPlanesUpdated     
+    # update previousPlanesUpdated
     c = []
     for plane in self.planesUpdated:
       c.append(plane)
