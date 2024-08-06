@@ -21,17 +21,15 @@ class Requester:
     self.planesUpdated = []
     self.previousPlanesUpdated = []
     self.strikes = {}
-
     self.servers = ["df2a8d19-3a54-4ce5-ae65-0b722186e44c","45173539-5080-4c95-9b93-a24713d96ec8","d01006e4-3114-473c-8f69-020b89d02884"]
-
     self.url = 'https://api.infiniteflight.com/public/v2/'
     print('restart')
-
+'''
   def updateCacheFile(self):
     save_object = json.dumps(self.history)
     with open('cache.json', 'w') as f:
       f.write(save_object)
-
+'''
   def primaryUpdate(self, key):
     if key == os.getenv('IFHUBKEY'):
       numberOfFlights = 0
@@ -43,8 +41,10 @@ class Requester:
                             "45173539-5080-4c95-9b93-a24713d96ec8" : [],
                             "d01006e4-3114-473c-8f69-020b89d02884" : []}
       currentTime = time.time()
+      min = time.gmtime(currentTime).tm_min
+      sec = time.gmtime(currentTime).tm_sec
       for server in self.servers:
-        data = requests.get(self.url + 'flights/{}?apikey={}'.format(server, os.getenv('IFKEY'))).json()['result']
+        data = requests.get(self.url + 'flights/{}?apikey={}'.format(server, 'pjjcwjxr9f1o0fckie5s504jlzzgvyqh')).json()['result']
         self.serverFlights[server] = data
         self.serverFlights[server][0]['timeOfRequest'] = currentTime
         numberOfFlights += len(data)
@@ -97,26 +97,36 @@ class Requester:
 
             if len(self.history[fid]) >= 2:
               if status == 'Taking off' and self.history[fid][-2]['Status'] == 'On the ground':
+                # check for multi-leg
+                if self.history[fid][0]['Timings'][1] != 0:
+                    self.history[fid][0]['Timings'][0] = currentTime
                 self.history[fid][0]['Timings'][1] = currentTime
                 self.history[fid][0]['Timings'][2] = 0 # for multi-leg flights
 
               if status == 'On the ground' and self.history[fid][-2]['Status'] == 'Landing':
                 self.history[fid][0]['Timings'][2] = currentTime
 
-            self.history[fid][0]['Timings'][3] = currentTime
-            newData = {"Altitude" : alt, "Longitude" : lon, "Latitude" :lat, "Speed" : speed, "Status" : status}
-            self.history[fid].append(newData)
-            totalDataPoints += len(self.history[fid])
+            addToHistory = False
+            if alt < 25000:
+                addToHistory = True
+            else:
+                if min % 2 == 0:
+                    if sec >= 30:
+                        addToHistory = True
+            if abs(vs) > 200:
+                addToHistory = True
+
+            if addToHistory == True:
+                self.history[fid][0]['Timings'][3] = currentTime
+                newData = {"Altitude" : alt, "Longitude" : lon, "Latitude" :lat, "Speed" : speed, "Status" : status}
+                self.history[fid].append(newData)
+                totalDataPoints += len(self.history[fid])
           else:
             newData = [{"Altitude" : alt, "Longitude" : lon, "Latitude" :lat, "Speed" : speed, "Status" : status, "Time" : 'On Time', 'BeenInAir' : 'No', "Timings" : [currentTime, 0, 0, currentTime]}]
-
-
-
             self.history[fid] = newData
             totalDataPoints += 1
 
           self.serverFlights[server][i]['length'] = len(self.history[fid])
-
 
       self.numberOfFlights = numberOfFlights
       self.totalDataPoints = totalDataPoints
@@ -127,7 +137,7 @@ class Requester:
     if key == os.getenv('IFHUBKEY'):
       for server in self.servers:
         # DEPRECATED, NOW INDIVIDUAL CALL
-        data = requests.get(self.url + 'sessions/{}/world?apikey={}'.format(server, os.getenv('IFKEY'))).json()
+        data = requests.get(self.url + 'sessions/{}/world?apikey={}'.format(server, 'pjjcwjxr9f1o0fckie5s504jlzzgvyqh')).json()
         self.atc[server] = data
         self.atc[server]['Time'] = time.time()
 
