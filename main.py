@@ -14,13 +14,7 @@ cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 
 api = Requester()
-'''
-with open('cache.json', 'r') as f:
-  try:
-    api.history = json.load(f)
-  except:
-    api.history = {}
-'''
+
 def primaryUpdate():
   api.primaryUpdate(os.getenv('IFHUBKEY'))
 
@@ -102,7 +96,6 @@ def run():
 sched = BackgroundScheduler(daemon=True, job_defaults={'max_instances': 2})
 sched.add_job(primaryUpdate,'interval',minutes=0.5)
 sched.add_job(secondaryUpdate,'interval',minutes=1.2)
-#sched.add_job(updateCacheFile,'interval',minutes=2.1)
 sched.start()
 
 t = Thread(target=run)
