@@ -24,12 +24,7 @@ class Requester:
     self.servers = ["df2a8d19-3a54-4ce5-ae65-0b722186e44c","45173539-5080-4c95-9b93-a24713d96ec8","d01006e4-3114-473c-8f69-020b89d02884"]
     self.url = 'https://api.infiniteflight.com/public/v2/'
     print('restart')
-'''
-  def updateCacheFile(self):
-    save_object = json.dumps(self.history)
-    with open('cache.json', 'w') as f:
-      f.write(save_object)
-'''
+
   def primaryUpdate(self, key):
     if key == os.getenv('IFHUBKEY'):
       numberOfFlights = 0
