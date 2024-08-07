@@ -93,7 +93,7 @@ class Requester:
             if len(self.history[fid]) >= 2:
               if status == 'Taking off' and self.history[fid][-2]['Status'] == 'On the ground':
                 # check for multi-leg
-                if self.history[fid][0]['Timings'][1] != 0:
+                if self.history[fid][0]['Timings'][2] != 0:
                     self.history[fid][0]['Timings'][0] = currentTime
                 self.history[fid][0]['Timings'][1] = currentTime
                 self.history[fid][0]['Timings'][2] = 0 # for multi-leg flights
